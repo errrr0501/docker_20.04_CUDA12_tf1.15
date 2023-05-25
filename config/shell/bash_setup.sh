@@ -5,7 +5,6 @@
 
 # Write Hello and alias to bashrc
 cat << 'EOF' >> /home/"${1}"/.bashrc
-echo 'Hello Docker!'
 
 # Commonly used aliases
 alias eb='vim ~/.bashrc'

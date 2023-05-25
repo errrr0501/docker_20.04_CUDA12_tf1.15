@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM nvidia/cuda:12.1.0-devel-ubuntu20.04
 ############################## SYSTEM PARAMETERS ##############################
 # * Arguments
 ARG USER=initial
@@ -61,6 +61,8 @@ RUN apt update \
         python3-pip \
         python3-dev \
         python3-setuptools \
+        software-properties-common \
+        lsb-release \
         # * Work tools
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
@@ -69,6 +71,36 @@ RUN apt update \
 # dbus-x11 libglvnd0 libgl1 libglx0 libegl1 libxext6 libx11-6 \
 # display dep
 # libnss3 libgbm1 libxshmfence1 libdrm2 libx11-xcb1 libxcb-*-dev
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sudo add-apt-repository universe
+RUN sudo apt update
+RUN sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+# RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN sudo apt update
+# RUN sudo  apt install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" keyboard-configuration
+RUN sudo DEBIAN_FRONTEND=noninteractive apt install -y ros-galactic-desktop
+#ROS2 Cyclone DDS
+RUN sudo apt install -y ros-galactic-rmw-cyclonedds-cpp
+#colcon depend
+RUN sudo apt install -y python3-colcon-common-extensions
+
+
+# RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+# RUN sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
+
+RUN apt update && apt install -y --no-install-recommends \
+#   #Realsense SDK depend
+#   librealsense2-dkms \
+#   librealsense2-utils \
+#   librealsense2-dev \
+#   librealsense2-dbg \
+  ros-galactic-librealsense2* \
+  ros-galactic-diagnostic-updater \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists  
+
 
 RUN ./config/pip/pip_setup.sh
 
@@ -80,7 +112,13 @@ RUN ./config/shell/bash_setup.sh "${USER}" "${GROUP}" \
     && ./config/shell/terminator/terminator_setup.sh "${USER}" "${GROUP}" \
     && ./config/shell/tmux/tmux_setup.sh "${USER}" "${GROUP}" \
     && sudo rm -rf /config
+ 
 
+RUN pip3 install nvidia-pyindex
+RUN pip3 install nvidia-tensorflow
+
+RUN echo "source /opt/ros/galactic/setup.bash" >> ~/.bashrc
+RUN export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 # * Switch workspace to ~/work
 RUN sudo mkdir -p /home/"${USER}"/work
 WORKDIR /home/"${USER}"/work
