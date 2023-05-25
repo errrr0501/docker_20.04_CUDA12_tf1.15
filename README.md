@@ -10,7 +10,7 @@
 2. Download this github repository.
 
     ```shell
-    git clone https://github.com/ycpss91255/docker_template
+    git clone https://github.com/errrr0501/docker_20.04_CUDA12_tf1.15
     ```
 
 3. Copy to your project directory.
