@@ -118,7 +118,7 @@ RUN pip3 install nvidia-pyindex
 RUN pip3 install nvidia-tensorflow
 
 RUN echo "source /opt/ros/galactic/setup.bash" >> ~/.bashrc
-RUN export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+RUN echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc
 # * Switch workspace to ~/work
 RUN sudo mkdir -p /home/"${USER}"/work
 WORKDIR /home/"${USER}"/work
